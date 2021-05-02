@@ -1,4 +1,4 @@
-package net.micedre;
+package net.micedre.keycloak;
 
 import java.util.List;
 
