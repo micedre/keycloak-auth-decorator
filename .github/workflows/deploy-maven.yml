@@ -1,0 +1,43 @@
+name: Publish package to the Maven Central Repository
+on:
+  release:
+    types: [created]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - id: install-secret-key
+        name: Install gpg secret key
+        run: |
+         cat <(echo -e "${{ secrets.OSSRH_GPG_KEY }}") | gpg --batch --import
+         gpg --list-secret-keys --keyid-format LONG
+      - id: publish-to-central
+        name: Publish to Central Repository
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: |
+          mvn -B versions:set -DnewVersion=${{ github.event.release.tag_name }}
+          mvn \
+            --no-transfer-progress \
+            --batch-mode \
+            -Dgpg.passphrase=${{ secrets.OSSRH_GPG_KEY_PASSWORD }} \
+            clean deploy
+      - id: push-new-version
+        name: push new version 
+        run: |
+          git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{github.repository}}.git
+          cd keycloak-auth-decorator
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          mvn -B versions:set -DnextSnapshot -DgenerateBackupPoms=false
+          git commit -a -m"Prepare new version"
+          git push
