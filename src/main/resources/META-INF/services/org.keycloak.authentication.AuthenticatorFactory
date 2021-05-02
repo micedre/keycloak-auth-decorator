@@ -1,1 +1,1 @@
-net.micedre.HttpDecoratorAuthenticatorFactory
+net.micedre.keycloak.HttpDecoratorAuthenticatorFactory

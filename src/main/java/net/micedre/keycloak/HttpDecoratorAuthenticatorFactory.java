@@ -13,6 +13,42 @@ import org.keycloak.provider.ProviderConfigurationBuilder;
 
 public class HttpDecoratorAuthenticatorFactory implements AuthenticatorFactory {
 
+    static List<ProviderConfigProperty> providerConfig; 
+    static{
+        providerConfig = ProviderConfigurationBuilder.create()
+            .property()
+                .name("user-attribute").label("User attribute")
+                .helpText("Name of the attribute to add to the user")
+                .type(ProviderConfigProperty.STRING_TYPE)
+                .add()
+            .property()
+                .name("fetch-url")
+                .helpText(
+                        "Url to fetch for the attribute (expects json),  #mail, #username are replaced by the authenticated user mail and username")
+                .label("Fetch Url")
+                .type(ProviderConfigProperty.STRING_TYPE)
+                .add()
+            .property()
+                .name("json-path")
+                .label("Json Path")
+                .helpText("Json path expression to extract the attribute")
+                .type(ProviderConfigProperty.STRING_TYPE)
+                .add()
+            .property().type(ProviderConfigProperty.MULTIVALUED_STRING_TYPE)
+                .name("headers")
+                .label("Http headers")
+                .helpText("Http Headers in the form : `<key>:<value>|<key>:<value>` (#secret is replaced by the secret in config)")
+                .add()
+            .property()
+                .type(ProviderConfigProperty.PASSWORD)
+                .secret(true)
+                .name("secret")
+                .label("Secret")
+                .helpText("Secret to use either in url or headers")
+                .add()
+            .build();
+    }
+
     @Override
     public void close() {
         //NO-OP
@@ -68,17 +104,10 @@ public class HttpDecoratorAuthenticatorFactory implements AuthenticatorFactory {
         return true;
     }
 
+    
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {
-        return ProviderConfigurationBuilder.create().property().name("user-attribute").label("User attribute")
-                .helpText("Name of the attribute to add to the user").type(ProviderConfigProperty.STRING_TYPE).add()
-                .property().name("fetch-url")
-                .helpText(
-                        "Url to fetch for the attribute (expects json),  $(mail), $(username) are replaced by the authenticated user mail and username")
-                .label("Fetch Url").type(ProviderConfigProperty.STRING_TYPE).add().property().name("json-path")
-                .label("Json Path").helpText("Json path expression to extract the attribute")
-                .type(ProviderConfigProperty.STRING_TYPE).add().property().type(ProviderConfigProperty.STRING_TYPE)
-                .name("headers").label("Http Headers in the form : `<key>:<value>|<key>:<value>`").add().build();
+        return providerConfig;
         
     }
 
